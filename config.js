@@ -8,9 +8,9 @@ window.MY_CALENDAR_CONFIG = {
     { code: "905", keywords: ["905", "egift", "Aチーム", "kobayan"] },
     { code: "001", keywords: ["001"] }
   ],
-  
+
   // 上記のどれにも該当しなかった予定をすべて放り込むデフォルトコード
-  DEFAULT_CODE: "999",
+  DEFAULT_CODE: "901",
 
   // 📌【新設定】ここに書いた文言が件名に含まれていれば、承諾していなくても問答無用で集計します
   FORCE_INCLUDE_KEYWORDS: ["tech Standup"]

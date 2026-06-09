@@ -13,9 +13,9 @@
     const FORCE_KEYWORDS = config.FORCE_INCLUDE_KEYWORDS || [];
 
     // 2. ユーザーに本日の総稼働時間を入力してもらうポップアップ
-    const userInput = prompt("本日の総稼働時間を入力してください（例: 8:57 や 8.5）\n※未入力の場合は 8時間(8.00h) として計算します", "8:57");
-    
-    let inputHours = 8.0; 
+    const userInput = prompt("本日の総稼働時間を入力してください（例: 8:57 や 8.5）\n※未入力の場合は 8時間(8.00h) として計算します", "8:00");
+
+    let inputHours = 8.0;
 
     if (userInput && userInput.trim() !== "") {
       const cleanInput = userInput.trim();
@@ -60,7 +60,7 @@
       // 【件名の抽出】「」の中身を抜く
       const titleMatch = labelText.match(/「(.*?)」/);
       const title = titleMatch ? titleMatch[1] : "タイトルなし";
-      const logPrefix = `【要素 #${idx+1}】[${title}]`;
+      const logPrefix = `【要素 #${idx + 1}】[${title}]`;
 
       // --- 当日判定 ---
       let isToday = false;
@@ -80,10 +80,10 @@
       // --- 📌【修正】ステータスと強制キーワードの判定 ---
       const isAccepted = labelText.includes("承諾");
       const isDeclined = labelText.includes("辞退") || labelText.includes("不参加");
-      
+
       // 件名に強制対象キーワードが含まれているかチェック
       const isForceInclude = FORCE_KEYWORDS.some(kw => title.toLowerCase().includes(kw.toLowerCase()));
-      
+
       let shouldInclude = false;
       let statusLog = "";
 
@@ -130,7 +130,7 @@
       if (endAmpm === "午前" && endHour === 12) endHour = 0;
 
       const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-      if (durationMinutes <= 0 || durationMinutes > 1440) return; 
+      if (durationMinutes <= 0 || durationMinutes > 1440) return;
       const durationHours = durationMinutes / 60;
 
       // カテゴリ判定
@@ -184,7 +184,7 @@
     `;
 
     let html = `<div style="font-weight:bold; border-bottom:1px solid #dadce0; padding-bottom:6px; margin-bottom:6px; color:#1a73e8; text-align:center;">今日の稼働工数</div>`;
-    
+
     const sortedCodes = Object.keys(summary).sort();
     sortedCodes.forEach(code => {
       if (summary[code] > 0) {
@@ -193,7 +193,7 @@
         </div>`;
       }
     });
-    
+
     html += `
       <div style="margin-top:6px; padding-top:6px; border-top:1px solid #dadce0; display:flex; justify-content:space-between; color:#1e8e3e; font-weight:bold;">
         <span>MTG合計時間:</span> <span>${total.toFixed(2)} h</span>
