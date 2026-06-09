@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Googleカレンダー工数自動集計",
+  "version": "1.1",
+  "description": "Googleカレンダー上の今日の予定から、カテゴリ別の稼働工数を自動集計して画面に表示します。",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": ["https://calendar.google.com/calendar/*"],
+      "js": ["config.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
