@@ -9,11 +9,13 @@
     const config = window.MY_CALENDAR_CONFIG;
     const CATEGORY_MAP = config.CATEGORY_MAP;
     const DEFAULT_CODE = config.DEFAULT_CODE;
+    // 強制キーワード設定（未定義の場合は空配列にする）
+    const FORCE_KEYWORDS = config.FORCE_INCLUDE_KEYWORDS || [];
 
     // 2. ユーザーに本日の総稼働時間を入力してもらうポップアップ
-    const userInput = prompt("本日の総稼働時間を入力してください（例: 8:57 や 8.5）\n※未入力の場合は 8時間(8.00h) として計算します", "8:00");
+    const userInput = prompt("本日の総稼働時間を入力してください（例: 8:57 や 8.5）\n※未入力の場合は 8時間(8.00h) として計算します", "8:57");
     
-    let inputHours = 8.0; // デフォルト値
+    let inputHours = 8.0; 
 
     if (userInput && userInput.trim() !== "") {
       const cleanInput = userInput.trim();
@@ -60,7 +62,7 @@
       const title = titleMatch ? titleMatch[1] : "タイトルなし";
       const logPrefix = `【要素 #${idx+1}】[${title}]`;
 
-      // --- 当日・承諾の判定 ---
+      // --- 当日判定 ---
       let isToday = false;
       const dateMatch = labelText.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
       if (dateMatch) {
@@ -73,16 +75,39 @@
       }
       if (labelText.includes("今日")) isToday = true;
 
-      const isAccepted = labelText.includes("承諾");
+      if (!isToday) return; // 他曜日の予定はスルー
 
-      // 【ログ】条件に合わずに除外された理由を出力
-      if (!isToday) {
-        return; // 今日以外の他曜日のログは邪魔になるので出さない
-      }
-      if (!isAccepted) {
-        console.log(`${logPrefix} ❌ 除外: 「承諾」されていません。`);
+      // --- 📌【修正】ステータスと強制キーワードの判定 ---
+      const isAccepted = labelText.includes("承諾");
+      const isDeclined = labelText.includes("辞退") || labelText.includes("不参加");
+      
+      // 件名に強制対象キーワードが含まれているかチェック
+      const isForceInclude = FORCE_KEYWORDS.some(kw => title.toLowerCase().includes(kw.toLowerCase()));
+      
+      let shouldInclude = false;
+      let statusLog = "";
+
+      if (isDeclined) {
+        // 辞退しているものは、キーワードに関わらず完全に除外
+        console.log(`${logPrefix} ❌ 除外: 「辞退」されている予定です。`);
         return;
       }
+
+      if (isForceInclude) {
+        // 強制キーワードにヒットした場合
+        shouldInclude = true;
+        statusLog = isAccepted ? "承諾・強制対象" : "未回答・強制対象(問答無用)";
+      } else if (isAccepted) {
+        // キーワードにはないが、普通に承諾している場合
+        shouldInclude = true;
+        statusLog = "承諾済み";
+      } else {
+        // 承諾しておらず、強制キーワードにも引っかからなかった場合
+        console.log(`${logPrefix} ❌ 除外: 「承諾」されておらず、強制集計の対象文字列にも含まれません。`);
+        return;
+      }
+
+      if (!shouldInclude) return;
 
       // 時間の抽出と24時間制への変換
       const timeRangeMatch = labelText.match(/(午前|午後)\s*(\d{1,2})(?::(\d{2}))?時?～(午前|午後)\s*(\d{1,2})(?::(\d{2}))?時?/);
@@ -122,26 +147,23 @@
       summary[finalCode] = (summary[finalCode] || 0) + durationHours;
       totalHours += durationHours;
 
-      // 【ログ】合格した今日の予定をタイトル付きで出力
-      console.log(`${logPrefix} ⭕ 集計成功 -> 工数: ${durationHours}h (${startHour}:${String(startMin).padStart(2, '0')}～${endHour}:${String(endMin).padStart(2, '0')}) | コード: [${finalCode}]`);
+      // ログ出力
+      console.log(`${logPrefix} ⭕ 集計成功 [${statusLog}] -> 工数: ${durationHours}h (${startHour}:${String(startMin).padStart(2, '0')}～${endHour}:${String(endMin).padStart(2, '0')}) | コード: [${finalCode}]`);
     });
 
-    // 入力された稼働時間からMTG合計を引き算
+    // 計算
     const otherHours = Math.max(0, inputHours - totalHours);
 
-    // 最終結果ログ
     console.log(`=== 📊 集計結果データ ===`);
     console.log(`・入力された総稼働: ${inputHours.toFixed(2)}h`);
     console.log(`・うちMTG合計: ${totalHours.toFixed(2)}h`);
     console.log(`・MTG以外の時間: ${otherHours.toFixed(2)}h`);
     console.log(`=========================`);
 
-    // パネルの描画
     createSummaryPanel(summary, totalHours, inputHours, otherHours);
     console.log("=== 🔍 カレンダー工数自動集計 完了 ===");
   }
 
-  // 表示パネルの作成
   function createSummaryPanel(summary, total, inputHours, other) {
     const panel = document.createElement('div');
     panel.id = 'mtg-summary-panel';
@@ -188,6 +210,5 @@
     document.body.appendChild(panel);
   }
 
-  // カレンダー読み込み完了を待つため、ページを開いて2秒後に「1回だけ」実行
   setTimeout(aggregateCalendarHours, 2000);
 }
