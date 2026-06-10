@@ -4,9 +4,9 @@
 window.MY_CALENDAR_CONFIG = {
   // 3桁のカテゴリコードと、判定用キーワード
   CATEGORY_MAP: [
-    { code: "901", keywords: ["901", "つながり", "新入社員大学"] },
+    { code: "001", keywords: ["001"] },
     { code: "905", keywords: ["905", "egift", "Aチーム", "kobayan"] },
-    { code: "001", keywords: ["001"] }
+    { code: "901", keywords: ["901", "つながり", "新入社員大学"] }
   ],
 
   // 上記のどれにも該当しなかった予定をすべて放り込むデフォルトコード
